@@ -5,9 +5,9 @@ export default function MovieBar() {
         <>
         <h2>Movie Row</h2>
         <div className="movierow">
-            <MovieTile/>
-            <MovieTile/>
-            <MovieTile/>
+            <MovieTile movie={"a"} />
+            <MovieTile movie={"b"}/>
+            <MovieTile movie={"c"}/>
         </div>
         </>
     );
