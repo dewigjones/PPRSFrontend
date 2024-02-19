@@ -1,13 +1,11 @@
 import MovieTile from "./MovieTile";
-
-export default function MovieBar() {
+import { MovieListInterface } from "./App";
+export default function MovieBar({title, movies}: MovieListInterface) {
     return (
         <>
-        <h2>Movie Row</h2>
+        <h2>{title}</h2>
         <div className="movierow">
-            <MovieTile movie={"a"} />
-            <MovieTile movie={"b"}/>
-            <MovieTile movie={"c"}/>
+            {movies.length >0 && movies.map((curmovie) => <MovieTile title={curmovie.title} poster_path ={curmovie.poster_path} overview={curmovie.overview} vote_average={curmovie.vote_average}  />)}
         </div>
         </>
     );
