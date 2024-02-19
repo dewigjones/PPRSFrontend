@@ -40,3 +40,10 @@
 .read-the-docs {
   color: #888;
 }
+
+.movierow {
+  display: flex;
+  flex-direction: row;
+  overflow: auto;
+  justify-content: space-around;
+}

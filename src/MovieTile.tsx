@@ -4,7 +4,7 @@ export default function MovieTile({ title, poster_path, overview, vote_average }
         return(
             <>
                 <p className="movietile" >{title}</p>
-                <img src={ImagesApi + poster_path}/>
+                <img src={ImagesApi + poster_path} alt={title}/>
             </>
         );
 }
