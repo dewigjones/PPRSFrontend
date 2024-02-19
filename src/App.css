@@ -40,10 +40,14 @@
 .read-the-docs {
   color: #888;
 }
-
+.movierow::-webkit-scrollbar {
+  display: none;
+}
 .movierow {
   display: flex;
   flex-direction: row;
-  overflow: auto;
+  overflow: scroll;
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
   justify-content: space-around;
 }
