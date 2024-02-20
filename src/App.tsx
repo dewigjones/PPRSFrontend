@@ -96,8 +96,8 @@ const getMovies = (API: string) => {
  }
   return (
     <>
-      <h1>Privacy Preserving Recommender System</h1>
-      {loading ?(<h2>Loading</h2>)  : (<MovieBar title={"Movie results"} movies={movies}/>)}
+      <h1 className="pprsTitle">Privacy Preserving Recommender System</h1>
+      {loading ?(<h2>Loading</h2>)  : (<> <MovieBar title={"Movie results"} movies={movies}/> <MovieBar title={"Movie results"} movies={movies}/> <MovieBar title={"Movie results"} movies={movies}/> <MovieBar title={"Movie results"} movies={movies}/></>)}
     </>
   )
 }

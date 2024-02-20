@@ -1,7 +1,7 @@
 #root {
-  max-width: 1920px;
+  max-width: 99vw;
   margin: 0 auto;
-  padding: 2rem;
+  padding: 0rem;
   text-align: center;
 }
 
@@ -44,11 +44,18 @@
   display: none;
 }
 .movierow {
-  display: flex;
+  max-width: fit-content;
+  display:-webkit-flex;
   flex-direction: row;
-  overflow: scroll;
+  overflow:scroll ;
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
-  justify-content:space-evenly;
-  box-shadow:inset;
+  justify-content:baseline;
+  box-shadow: 0px 10px 10px rgb(20, 20, 20);
+}
+
+.pprsTitle {
+  text-align: center;
+  align-self: center;
+  padding: auto;
 }
