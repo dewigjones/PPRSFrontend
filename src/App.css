@@ -3,6 +3,11 @@
   margin: 0 auto;
   padding: 0rem;
   text-align: center;
+ 
+}
+body { 
+  background: rgb(0,0,0);
+  background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(238,0,0,1) 100%);
 }
 
 .logo {
@@ -51,11 +56,23 @@
   -ms-overflow-style: none;  /* IE and Edge */
   scrollbar-width: none;  /* Firefox */
   justify-content:baseline;
-  box-shadow: 0px 10px 10px rgb(20, 20, 20);
+  box-shadow: 10px 10px 100px rgb(20, 20, 20);
+  border-radius: 2ex;
+  padding: 0%;
 }
 
 .pprsTitle {
   text-align: center;
   align-self: center;
   padding: auto;
+}
+
+.movieTile {
+  border-radius: 2ex;
+  padding: 1ex;
+}
+
+.movierowTitle {
+  text-align: left;
+  padding: 0%;
 }
