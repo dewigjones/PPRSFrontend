@@ -60,8 +60,12 @@ body {
   box-shadow: 10px 10px 100px rgb(20, 20, 20);
   border-radius: 2ex;
   padding: 0%;
+  transition-duration: 0.6s;
 }
 
+.movierow:hover {
+  background-color: rgba(240, 248, 255, 0.2);
+}
 .pprsTitle {
   text-align: center;
   align-self: center;
