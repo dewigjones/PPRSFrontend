@@ -70,12 +70,49 @@ const initSeal = () => {
 }
 
 function App() {
-const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_KEY;
+const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_TOKEN;
 const FeaturedApi = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${apikey}&page=1`;
 
-const [loading, setLoading] = useState<boolean>(false);
+const [loading, setLoading] = useState<boolean>(true);
 const [movies, setMovies] = useState<MoviesInterface[]>([]);
 const [sealInitialised, setSealInitialised] = useState<boolean>(false);
+const [moviesFetched, setMoviesFetched] = useState<number>(0);
+let decryptedMovies: [number, number][] =  ([
+      [1, 2],
+      [2, 1],
+      [4, 3],
+      [3, 5],
+])
+let idMap = new Map<number, string>([
+  [1, "Toy Story"],
+  [2, "GoldenEye"],
+  [3, "Star Wars"],
+  [4, "Pulp Fiction"],
+  [5, "Citizen Kane"],
+])
+const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, string>, apikey: string) => {
+    decryptedMovies.sort(([,b], [, y]) => b-y);
+    decryptedMovies.forEach(([index, ]) => {
+      const movieTitle = idMap.get(index);
+      const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${apikey}`
+        }
+      };
+      fetch(MovieLookUpApi, options)
+        .then((res) => res.json())
+        .then((data)=> {
+          console.log(data);
+          let firstMovie: MoviesInterface = data.results[0];
+          setMovies(movies.concat(firstMovie));
+          setLoading(false);
+          setMoviesFetched(moviesFetched + 1);
+        })
+    })
+  }
 
 const getMovies = (API: string) => {
     setLoading(true);
@@ -87,8 +124,8 @@ const getMovies = (API: string) => {
       });
   };
   useEffect(() => {
-    getMovies(FeaturedApi);
-  }, [FeaturedApi]);
+    if(moviesFetched < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
+  }, [decryptedMovies, idMap, apikey]);
 
  if (!sealInitialised) {
   initSeal();
