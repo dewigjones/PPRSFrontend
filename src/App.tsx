@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useReducer, useState } from "react";
 import SEAL from 'node-seal'
 
 import './App.css'
@@ -76,7 +76,8 @@ const FeaturedApi = `https://api.themoviedb.org/3/discover/movie?sort_by=popular
 const [loading, setLoading] = useState<boolean>(true);
 const [movies, setMovies] = useState<MoviesInterface[]>([]);
 const [sealInitialised, setSealInitialised] = useState<boolean>(false);
-const [moviesFetched, setMoviesFetched] = useState<number>(0);
+const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
+const [_, forceUpdate] = useReducer((x: number) => x + 1, 0);
 let decryptedMovies: [number, number][] =  ([
       [1, 2],
       [2, 1],
@@ -93,6 +94,7 @@ let idMap = new Map<number, string>([
 const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, string>, apikey: string) => {
     decryptedMovies.sort(([,b], [, y]) => b-y);
     decryptedMovies.forEach(([index, ]) => {
+      setMoviesFetched(moviesFetched.add(index));
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
       const options = {
@@ -107,9 +109,9 @@ const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, st
         .then((data)=> {
           console.log(data);
           let firstMovie: MoviesInterface = data.results[0];
-          setMovies(movies.concat(firstMovie));
+          setMovies((movies)=>[...movies, firstMovie]);
           setLoading(false);
-          setMoviesFetched(moviesFetched + 1);
+          forceUpdate();
         })
     })
   }
@@ -124,7 +126,7 @@ const getMovies = (API: string) => {
       });
   };
   useEffect(() => {
-    if(moviesFetched < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
+    if(moviesFetched.size < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
   }, [decryptedMovies, idMap, apikey]);
 
  if (!sealInitialised) {
