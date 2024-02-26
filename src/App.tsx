@@ -70,6 +70,7 @@ const initSeal = () => {
 function App() {
 const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_TOKEN;
 const FeaturedApi = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${apikey}&page=1`;
+const numOfFilmsToDisplay = 15;
 
 const [loading, setLoading] = useState<boolean>(true);
 const [movies, setMovies] = useState<MoviesInterface[]>([]);
@@ -80,14 +81,24 @@ const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>(
 const [idMapLoaded, setIdMapLoaded] = useState<boolean>(false);
 let decryptedMovies: [number, number][] =  ([
       [1, 2],
-      [2, 1],
+      [2, 5],
       [4, 3],
       [3, 5],
       [10, 3],
       [41, 2],
+      [54, 2.2],
       [22, 3],
       [11, 2],
-      [13, 2]
+      [56, 5],
+      [69, 2.5],
+      [45, 4.7],
+      [25, 2.7],
+      [15, 1.7],
+      [38, 3.6],
+      [23, 2.4],
+      [24, 3.2],
+      [27, 4.2],
+      
 ])
 fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(text => {
   const entry = text.split("|", 2);
@@ -95,8 +106,9 @@ fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(t
   setIdMapLoaded(true);
 }));
 const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, string>, apikey: string) => {
-    decryptedMovies.sort(([,b], [, y]) => b-y);
-    decryptedMovies.forEach(([index, ]) => {
+    decryptedMovies.sort(([,b], [, y]) => y-b);
+    const topMovies = decryptedMovies.slice(0,numOfFilmsToDisplay);
+    topMovies.forEach(([index, ]) => {
       setMoviesFetched(moviesFetched.add(index));
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
@@ -114,7 +126,7 @@ const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, st
           let firstMovie: MoviesInterface = data.results[0];
           setMovies((movies)=>[...movies, firstMovie]);
           setLoading(false);
-          forceUpdate();
+
         })
     })
   }
@@ -129,7 +141,7 @@ const getMovies = (API: string) => {
       });
   };
   useEffect(() => {
-    if(idMapLoaded && moviesFetched.size < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
+    if(idMapLoaded && moviesFetched.size < Math.min(decryptedMovies.length, numOfFilmsToDisplay)) processMovies(decryptedMovies, idMap, apikey)
   }, [decryptedMovies, idMap, apikey]);
 
  if (!sealInitialised) {
