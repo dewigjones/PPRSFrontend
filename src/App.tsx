@@ -3,7 +3,7 @@ import SEAL from 'node-seal'
 import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
-import fs from 'fs'
+import seckey from '../data/seckey.txt'
 
 export interface MoviesInterface {
   id?: number;
@@ -58,7 +58,7 @@ const initSeal = () => {
 
   const secretKey = keyGenerator.secretKey();
   // secretKey.load(context, fs.readFileSync('hello.txt', 'utf8'));
-  console.log(fs);
+  fetch(seckey).then(seckey => seckey.blob).then(seckey => {console.log(seckey); secretKey.load(context,seckey.toString() )});
   const publicKey = keyGenerator.createPublicKey()
   const relinKey = keyGenerator.createRelinKeys()
 
