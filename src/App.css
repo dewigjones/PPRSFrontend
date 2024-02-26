@@ -7,7 +7,7 @@
 }
 body { 
   background: rgb(0,0,0);
-  background: linear-gradient(90deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 10%, rgba(238,0,0,1) 100%);
+  background: linear-gradient(45deg, rgba(0,0,0,1) 0%, rgba(0,0,0,1) 20%, rgba(200,0,0,1) 100%);
 }
 
 .logo {
