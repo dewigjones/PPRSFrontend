@@ -1,6 +1,6 @@
 import { useEffect, useReducer, useState } from "react";
 import SEAL from 'node-seal'
-
+import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
 
@@ -19,53 +19,51 @@ export interface MovieListInterface {
 
 const seal = await SEAL();
 const initSeal = () => {
- 
-    const schemeType = seal.SchemeType.bgv;
-    const securityLevel = seal.SecurityLevel.tc128;
-    const polyModulusDegree = 16384;
-    const bitSizes = [36, 36, 37];
-    const bitSize = 20; 
+  const schemeType = seal.SchemeType.bgv;
+  const securityLevel = seal.SecurityLevel.tc128;
+  const polyModulusDegree = 16384;
+  const bitSizes = [36, 36, 37];
+  const bitSize = 20; 
 
-    const encParms = seal.EncryptionParameters(schemeType)
+  const encParms = seal.EncryptionParameters(schemeType)
 
-    // Set the PolyModulusDegree
-    encParms.setPolyModulusDegree(polyModulusDegree)
+  // Set the PolyModulusDegree
+  encParms.setPolyModulusDegree(polyModulusDegree)
 
-    // Create a suitable set of CoeffModulus primes
-    encParms.setCoeffModulus(
-      seal.CoeffModulus.Create(polyModulusDegree, Int32Array.from(bitSizes))
+  // Create a suitable set of CoeffModulus primes
+  encParms.setCoeffModulus(
+    seal.CoeffModulus.Create(polyModulusDegree, Int32Array.from(bitSizes))
+  )
+
+  // Set the PlainModulus to a prime of bitSize 20.
+  encParms.setPlainModulus(seal.PlainModulus.Batching(polyModulusDegree, bitSize))
+
+  // Create a new Context
+  const context = seal.Context(
+    encParms, // Encryption Parameters
+    true, // ExpandModChain
+    securityLevel // Enforce a security level
+  )
+
+  if (!context.parametersSet()) {
+    throw new Error(
+      'Could not set the parameters in the given context. Please try different encryption parameters.'
     )
-
-    // Set the PlainModulus to a prime of bitSize 20.
-    encParms.setPlainModulus(seal.PlainModulus.Batching(polyModulusDegree, bitSize))
-
-    // Create a new Context
-    const context = seal.Context(
-      encParms, // Encryption Parameters
-      true, // ExpandModChain
-      securityLevel // Enforce a security level
-    )
-
-    if (!context.parametersSet()) {
-      throw new Error(
-        'Could not set the parameters in the given context. Please try different encryption parameters.'
-      )
-    }
+  }
 
 
-    // Create a new KeyGenerator (creates a new keypair internally)
-    const keyGenerator = seal.KeyGenerator(context)
+  // Create a new KeyGenerator (creates a new keypair internally)
+  const keyGenerator = seal.KeyGenerator(context)
 
-    const secretKey = keyGenerator.secretKey()
-    const publicKey = keyGenerator.createPublicKey()
-    const relinKey = keyGenerator.createRelinKeys()
+  const secretKey = keyGenerator.secretKey()
+  const publicKey = keyGenerator.createPublicKey()
+  const relinKey = keyGenerator.createRelinKeys()
 
-    // Saving a key to a string is the same for each type of key
-    const secretBase64Key = secretKey.save()
-    const publicBase64Key = publicKey.save()
-    const relinBase64Key = relinKey.save()
+  // Saving a key to a string is the same for each type of key
+  const secretBase64Key = secretKey.save()
+  const publicBase64Key = publicKey.save()
 
-    console.log(secretBase64Key);
+  console.log(secretBase64Key);
   
 }
 
@@ -78,19 +76,24 @@ const [movies, setMovies] = useState<MoviesInterface[]>([]);
 const [sealInitialised, setSealInitialised] = useState<boolean>(false);
 const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
 const [_, forceUpdate] = useReducer((x: number) => x + 1, 0);
+const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>());
+const [idMapLoaded, setIdMapLoaded] = useState<boolean>(false);
 let decryptedMovies: [number, number][] =  ([
       [1, 2],
       [2, 1],
       [4, 3],
       [3, 5],
+      [10, 3],
+      [41, 2],
+      [22, 3],
+      [11, 2],
+      [13, 2]
 ])
-let idMap = new Map<number, string>([
-  [1, "Toy Story"],
-  [2, "GoldenEye"],
-  [3, "Star Wars"],
-  [4, "Pulp Fiction"],
-  [5, "Citizen Kane"],
-])
+fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(text => {
+  const entry = text.split("|", 2);
+  setIdMap((idMap) => idMap.set(parseInt(entry[0]), entry[1]));
+  setIdMapLoaded(true);
+}));
 const processMovies = (decryptedMovies:[number, number][], idMap: Map<number, string>, apikey: string) => {
     decryptedMovies.sort(([,b], [, y]) => b-y);
     decryptedMovies.forEach(([index, ]) => {
@@ -126,7 +129,7 @@ const getMovies = (API: string) => {
       });
   };
   useEffect(() => {
-    if(moviesFetched.size < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
+    if(idMapLoaded && moviesFetched.size < decryptedMovies.length) processMovies(decryptedMovies, idMap, apikey)
   }, [decryptedMovies, idMap, apikey]);
 
  if (!sealInitialised) {
