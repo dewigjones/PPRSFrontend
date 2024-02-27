@@ -4,6 +4,7 @@ import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
 import seckey from '../data/seckey.txt'
+import { Stream } from "stream";
 
 export interface MoviesInterface {
   id?: number;
@@ -23,8 +24,7 @@ const initSeal = () => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
-  const bitSizes = [36, 36, 37];
-  const bitSize = 20;
+  const bitSize = 60;
 
   const encParms = seal.EncryptionParameters(schemeType)
 
@@ -33,7 +33,7 @@ const initSeal = () => {
 
   // Create a suitable set of CoeffModulus primes
   encParms.setCoeffModulus(
-    seal.CoeffModulus.Create(polyModulusDegree, Int32Array.from(bitSizes))
+    seal.CoeffModulus.BFVDefault(polyModulusDegree)
   )
 
   // Set the PlainModulus to a prime of bitSize 20.
@@ -58,7 +58,16 @@ const initSeal = () => {
 
   const secretKey = keyGenerator.secretKey();
   // secretKey.load(context, fs.readFileSync('hello.txt', 'utf8'));
-  fetch(seckey).then(seckey => seckey.blob).then(seckey => {console.log(seckey); secretKey.load(context,seckey.toString() )});
+  fetch(seckey).then(seckey => seckey.blob())
+                .then(blob => blob.stream())
+                .then(stream => stream.getReader())
+                .then(reader => reader.read())
+                .then(result => result.value)
+                .then(seckey => { 
+                  console.log(seckey); 
+                  seckey ? secretKey.loadArray(context, seckey): console.log("Error loading secret key") 
+                  console.log(secretKey.save());
+                });
   const publicKey = keyGenerator.createPublicKey()
   const relinKey = keyGenerator.createRelinKeys()
 
