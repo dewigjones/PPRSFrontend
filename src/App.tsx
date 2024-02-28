@@ -24,7 +24,7 @@ export interface MovieListInterface {
 }
 
 const seal = await SEAL();
-const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, encoder, setDecryptedMovies) => {
+const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies) => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
@@ -62,7 +62,8 @@ const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, encoder, s
 
   const secretKey = keyGenerator.secretKey();
   setEvaluator(seal.Evaluator(context));
-  setEncoder(seal.BatchEncoder(context));
+  const encoder = seal.BatchEncoder(context);
+  setEncoder(encoder);
   fetch(seckey).then(seckey => seckey.blob())
                 .then(blob => blob.stream())
                 .then(stream => stream.getReader())
@@ -79,16 +80,13 @@ const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, encoder, s
 }
 
 const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies) =>{
-fetch(data1).then(data => data.blob())
-              .then(blob => blob.stream())
-              .then(stream => stream.getReader())
-              .then(reader => reader.read())
-              .then(result => result.value)
+fetch(data1).then(data => data.arrayBuffer())
               .then(value => { 
                 console.log(value); 
                 const ciphertext = seal.CipherText();
-                (context && value)? ciphertext.loadArray(context, value) : console.log("error setting ciphertext");
+                (context && value)? ciphertext.loadArray(context, new Uint8Array(value)) : console.log("error setting ciphertext");
                 const plaintext = seal.PlainText();
+                console.log(encoder);
                 decryptor?.decrypt(ciphertext, plaintext);
                 const decoded = encoder?.decode(plaintext);
                 
