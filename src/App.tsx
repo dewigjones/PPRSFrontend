@@ -1,4 +1,4 @@
-import { useEffect, useReducer, useState } from "react";
+import { useEffect, useReducer, useState, Dispatch, SetStateAction } from "react";
 import SEAL from 'node-seal'
 import movieList from '../movieList.txt'
 import './App.css'
@@ -24,7 +24,7 @@ export interface MovieListInterface {
 }
 
 const seal = await SEAL();
-const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies) => {
+const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies: Dispatch<SetStateAction<[number, number][]>>) => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
@@ -136,7 +136,7 @@ function App() {
   }, [decryptedMovies, idMap, apikey]);
   console.log(decryptor);
   if (!sealInitialised) {
-    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, encoder, setDecryptedMovies);
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies);
     setSealInitialised(true);
   }
   fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(text => {
