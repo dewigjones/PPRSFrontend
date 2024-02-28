@@ -4,7 +4,7 @@ import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
 import seckey from '../data/seckey.txt'
-import data1 from '../data/user1_1.txt'
+import encryptedList from '../data/filelist.txt'
 import { Decryptor } from "node-seal/implementation/decryptor";
 import { Evaluator } from "node-seal/implementation/evaluator";
 import { BatchEncoder } from "node-seal/implementation/batch-encoder";
@@ -24,7 +24,7 @@ export interface MovieListInterface {
 }
 
 const seal = await SEAL();
-const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies: Dispatch<SetStateAction<[number, number][]>>) => {
+const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setLoading) => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
@@ -74,81 +74,38 @@ const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecrypt
                   seckey ? secretKey.loadArray(context, seckey): console.log("Error loading secret key") ;
                   const decryptor = seal.Decryptor(context, secretKey);
                   setDecryptor(decryptor);
-                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies)
+                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading)
                 });
 
 }
 
-const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies) =>{
-fetch(data1).then(data => data.arrayBuffer())
+const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<SetStateAction<Set<[number, number]>>>, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading)  =>{
+  fetch(encryptedList).then(data => data.text()).then(text => {
+    let counter = 0;
+    const lines = text.split('\n');
+    lines.forEach((filename) =>
+  {fetch("../data/" +filename).then(data => data.arrayBuffer())
               .then(value => { 
-                console.log(value); 
                 const ciphertext = seal.CipherText();
                 (context && value)? ciphertext.loadArray(context, new Uint8Array(value)) : console.log("error setting ciphertext");
                 const plaintext = seal.PlainText();
-                console.log(encoder);
                 decryptor?.decrypt(ciphertext, plaintext);
                 const decoded = encoder?.decode(plaintext);
-                
-                decoded? setDecryptedMovies((decryptedMovies)=>[...decryptedMovies, [1, decoded[0]]]): console.log("error with decoding");
-              });}
-function App() {
-  const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_TOKEN;
-  const FeaturedApi = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${apikey}&page=1`;
-  const numOfFilmsToDisplay = 15;
-
-  const [loading, setLoading] = useState<boolean>(true);
-  const [movies, setMovies] = useState<MoviesInterface[]>([]);
-  const [sealInitialised, setSealInitialised] = useState<boolean>(false);
-  const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
-  const [_, forceUpdate] = useReducer((x: number) => x + 1, 0);
-  const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>());
-  const [idMapLoaded, setIdMapLoaded] = useState<boolean>(false);
-
-  const [context, setContext] = useState<Context>();
-  const [decryptor, setDecryptor] = useState<Decryptor>();
-  const [evaluator, setEvaluator] = useState<Evaluator>();
-  const [encoder, setEncoder] = useState<BatchEncoder>();
-  const [decryptedMovies, setDecryptedMovies] = useState<[number, number][]>([]);
-  // let decryptedMovies: [number, number][] = ([
-  //   [1, 2],
-  //   [2, 5],
-  //   [4, 3],
-  //   [3, 5],
-  //   [10, 3],
-  //   [41, 2],
-  //   [54, 2.2],
-  //   [22, 3],
-  //   [11, 2],
-  //   [56, 5],
-  //   [69, 2.5],
-  //   [45, 4.7],
-  //   [25, 2.7],
-  //   [15, 1.7],
-  //   [38, 3.6],
-  //   [23, 2.4],
-  //   [24, 3.2],
-  //   [27, 4.2],
-
-  // ])
-  useEffect(() => {
-    if (idMapLoaded && moviesFetched.size < Math.min(decryptedMovies.length, numOfFilmsToDisplay)) processMovies(decryptedMovies, idMap, apikey)
-  }, [decryptedMovies, idMap, apikey]);
-  console.log(decryptor);
-  if (!sealInitialised) {
-    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies);
-    setSealInitialised(true);
+                const filmNum = filename.substring(filename.search('\_') + 1, filename.length - 4);
+                console.log(filmNum);
+                decoded? setDecryptedMovies((decryptedMovies)=> decryptedMovies.add([parseInt(filmNum), decoded[0]/ Math.pow(2,40)])): console.log("error with decoding");
+                if (counter++ >= lines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading) }
+              });
+    })
+  })
   }
-  fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(text => {
-    const entry = text.split("|", 2);
-    setIdMap((idMap) => idMap.set(parseInt(entry[0]), entry[1]));
-    setIdMapLoaded(true);
-  }));
 
-  const processMovies = (decryptedMovies: [number, number][], idMap: Map<number, string>, apikey: string) => {
-    decryptedMovies.sort(([, b], [, y]) => y - b);
-    const topMovies = decryptedMovies.slice(0, numOfFilmsToDisplay);
+  const processMovies = (decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies:Dispatch<SetStateAction<MoviesInterface[]>>, setLoading) => {
+    const decryptedMoviesArray = Array.from(decryptedMovies);
+    decryptedMoviesArray.sort(([, b], [, y]) => y - b);
+    const topMovies = decryptedMoviesArray.slice(0, numOfFilmsToDisplay);
     topMovies.forEach(([index,]) => {
+      if(!moviesFetched.has(index)) {
       setMoviesFetched(moviesFetched.add(index));
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
@@ -168,31 +125,47 @@ function App() {
           setLoading(false);
 
         })
-    })
+  }})
+  }
+function App() {
+  const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_TOKEN;
+  const FeaturedApi = `https://api.themoviedb.org/3/discover/movie?sort_by=popularity.desc&api_key=${apikey}&page=1`;
+  const numOfFilmsToDisplay = 15;
+
+  const [loading, setLoading] = useState<boolean>(true);
+  const [movies, setMovies] = useState<MoviesInterface[]>([]);
+  const [sealInitialised, setSealInitialised] = useState<boolean>(false);
+  const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
+  const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>());
+  const [idMapLoaded, setIdMapLoaded] = useState<boolean>(false);
+
+  const [context, setContext] = useState<Context>();
+  const [decryptor, setDecryptor] = useState<Decryptor>();
+  const [evaluator, setEvaluator] = useState<Evaluator>();
+  const [encoder, setEncoder] = useState<BatchEncoder>();
+  const [decryptedMovies, setDecryptedMovies] = useState<Set<[number, number]>>(new Set<[number, number]>());
+  const [moviesDecrypted, setMoviesDecrypted] = useState<boolean>(false);
+
+  // useEffect(() => {
+  //   if (idMapLoaded && moviesFetched.size < Math.min(decryptedMovies.size, numOfFilmsToDisplay)) {processMovies(idMap, apikey);}
+  //   console.log(decryptedMovies);
+  // }), [decryptedMovies, moviesFetched];
+
+  if (!sealInitialised) {
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading);
+    setSealInitialised(true);
   }
 
-  const getMovies = (API: string) => {
-    setLoading(true);
-    fetch(API)
-      .then((res) => res.json())
-      .then((data) => {
-        setMovies(data.results);
-        setLoading(false);
-      });
-  };
+  fetch(movieList).then(input => input.text()).then(text => text.split("\n").map(text => {
+    const entry = text.split("|", 2);
+    setIdMap((idMap) => idMap.set(parseInt(entry[0]), entry[1]));
+    setIdMapLoaded(true);
+  }));
+
+  
+
 
   return (
-  // fetch('data/user1_1.txt').then(data => data.blob())
-  //               .then(blob => blob.stream())
-  //               .then(stream => stream.getReader())
-  //               .then(reader => reader.read())
-  //               .then(result => result.value)
-  //               .then(plain => { 
-  //                 console.log(plain); 
-  //                 const plaint
-  //                 plain ? secretKey.loadArray(context, seckey): console.log("Error loading secret key") 
-  //                 console.log(secretKey.save());
-  //               });
     <>
       <h1 className="pprsTitle">Privacy Preserving Recommender System</h1>
       {loading ? (<h2>Loading</h2>) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
