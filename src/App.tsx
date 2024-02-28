@@ -90,10 +90,11 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
                 (context && value)? ciphertext.loadArray(context, new Uint8Array(value)) : console.log("error setting ciphertext");
                 const plaintext = seal.PlainText();
                 decryptor?.decrypt(ciphertext, plaintext);
-                const decoded = encoder?.decode(plaintext);
+                const decoded = encoder?.decode(plaintext, false);
                 const filmNum = filename.substring(filename.search('\_') + 1, filename.length - 4);
-                console.log(filmNum);
-                decoded? setDecryptedMovies((decryptedMovies)=> decryptedMovies.add([parseInt(filmNum), decoded[0]/ Math.pow(2,40)])): console.log("error with decoding");
+                const rating = decoded[0] / Math.pow(2,30);
+                console.log(filmNum + ", " + rating.toString());
+                decoded? setDecryptedMovies((decryptedMovies)=> decryptedMovies.add([parseInt(filmNum), rating])): console.log("error with decoding");
                 if (counter++ >= lines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading) }
               });
     })
@@ -145,11 +146,6 @@ function App() {
   const [encoder, setEncoder] = useState<BatchEncoder>();
   const [decryptedMovies, setDecryptedMovies] = useState<Set<[number, number]>>(new Set<[number, number]>());
   const [moviesDecrypted, setMoviesDecrypted] = useState<boolean>(false);
-
-  // useEffect(() => {
-  //   if (idMapLoaded && moviesFetched.size < Math.min(decryptedMovies.size, numOfFilmsToDisplay)) {processMovies(idMap, apikey);}
-  //   console.log(decryptedMovies);
-  // }), [decryptedMovies, moviesFetched];
 
   if (!sealInitialised) {
     initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading);
