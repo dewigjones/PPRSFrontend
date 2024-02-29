@@ -107,6 +107,7 @@ transform: scale(1.1);
   width: 64px;
   position: absolute;
   left: 0%;
+  top: 2ex;
   padding: auto;
 }
 
@@ -125,3 +126,12 @@ transform: scale(1.1);
   /* overflow-y: visible; */
 }
 
+.avatar {
+  width:64px;
+  height: 64px;
+  position: absolute;
+  top: 2ex;
+  right: 2ex;
+  padding: 0%;
+  border-radius: 50%;
+}
