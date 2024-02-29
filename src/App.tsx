@@ -17,6 +17,7 @@ export interface MoviesInterface {
   poster_path: string;
   overview: string;
   vote_average: number;
+  genre_ids: number[];
 }
 
 export interface MovieListInterface {
@@ -25,7 +26,7 @@ export interface MovieListInterface {
 }
 
 const seal = await SEAL();
-const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setLoading) => {
+const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
@@ -75,12 +76,12 @@ const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecrypt
                   seckey ? secretKey.loadArray(context, seckey): console.log("Error loading secret key") ;
                   const decryptor = seal.Decryptor(context, secretKey);
                   setDecryptor(decryptor);
-                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading)
+                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading)
                 });
 
 }
 
-const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<SetStateAction<Set<[number, number]>>>, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading)  =>{
+const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<SetStateAction<Set<[number, number]>>>, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading)  =>{
   fetch(encryptedList).then(data => data.text()).then(text => {
     let counter = 0;
     const lines = text.split('\n');
@@ -96,19 +97,20 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
                 const rating = decoded[0] / Math.pow(2,30);
                 console.log(filmNum + ", " + rating.toString());
                 decoded? setDecryptedMovies((decryptedMovies)=> decryptedMovies.add([parseInt(filmNum), rating])): console.log("error with decoding");
-                if (counter++ >= lines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading) }
+                if (counter++ >= lines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading) }
               });
     })
   })
   }
 
-  const processMovies = (decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies:Dispatch<SetStateAction<MoviesInterface[]>>, setLoading) => {
+  const processMovies = (decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies:Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
     const decryptedMoviesArray = Array.from(decryptedMovies);
     decryptedMoviesArray.sort(([, b], [, y]) => y - b);
     const topMovies = decryptedMoviesArray.slice(0, numOfFilmsToDisplay);
+    const middleMovies = decryptedMoviesArray.slice(numOfFilmsToDisplay + 1, 3 * numOfFilmsToDisplay);
     topMovies.forEach(([index,]) => {
       if(!moviesFetched.has(index)) {
-      setMoviesFetched(moviesFetched.add(index));
+      setMoviesFetched((moviesFetched) => moviesFetched.add(index));
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
       const options = {
@@ -124,10 +126,35 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
           console.log(data);
           let firstMovie: MoviesInterface = data.results[0];
           setMovies((movies) => [...movies, firstMovie]);
+          if(firstMovie.genre_ids.includes(35)) setGenre1Movies((genre1Movies) =>[...genre1Movies, firstMovie]);
+          if(firstMovie.genre_ids.includes(18)) setGenre2Movies((genre2Movies) =>[...genre2Movies, firstMovie]);
+          setLoading(false);
+        })
+    }})
+    middleMovies.forEach(([index, ]) => {
+    if(!moviesFetched.has(index)) {
+      setMoviesFetched((moviesFetched) => moviesFetched.add(index));
+      const movieTitle = idMap.get(index);
+      const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
+      const options = {
+        method: 'GET',
+        headers: {
+          accept: 'application/json',
+          Authorization: `Bearer ${apikey}`
+        }
+      };
+      fetch(MovieLookUpApi, options)
+        .then((res) => res.json())
+        .then((data) => {
+          console.log(data);
+          let firstMovie: MoviesInterface = data.results[0];
+          if(firstMovie.genre_ids.includes(35)) setGenre1Movies((genre1Movies) =>[...genre1Movies, firstMovie]);
+          if(firstMovie.genre_ids.includes(18)) setGenre2Movies((genre2Movies) =>[...genre2Movies, firstMovie]);
           setLoading(false);
 
         })
-  }})
+    }
+    })
   }
 function App() {
   const apikey = import.meta.env.VITE_REACT_APP_TMDB_API_TOKEN;
@@ -135,7 +162,9 @@ function App() {
   const numOfFilmsToDisplay = 15;
 
   const [loading, setLoading] = useState<boolean>(true);
-  const [movies, setMovies] = useState<MoviesInterface[]>([]);
+  const [topMovies, setTopMovies] = useState<MoviesInterface[]>([]);
+  const [genre1Movies, setGenre1Movies] = useState<MoviesInterface[]>([]);
+  const [genre2Movies, setGenre2Movies] = useState<MoviesInterface[]>([]);
   const [sealInitialised, setSealInitialised] = useState<boolean>(false);
   const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
   const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>());
@@ -149,7 +178,7 @@ function App() {
   const [moviesDecrypted, setMoviesDecrypted] = useState<boolean>(false);
 
   if (!sealInitialised) {
-    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setLoading);
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading);
     setSealInitialised(true);
   }
 
@@ -164,7 +193,7 @@ function App() {
 
   return (
     <>
-      {loading ? (<SyncLoader color="#C5C392" />) : (<><TopBar id={0} name="Gruff" img_path="Gruff.jpg"/> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
+      {loading ? (<SyncLoader color="#C5C392" />) : (<><TopBar id={1} name="Gruff" img_path="Gruff.jpg"/> <MovieBar title={"Top Picks for Gruff"} movies={topMovies} /> <MovieBar title={"Top Comedy Films"} movies={genre1Movies} /> <MovieBar title={"Top Drama Films"} movies={genre2Movies} /></>)}
     </>
   )
 }
