@@ -164,7 +164,7 @@ function App() {
   return (
     <>
       <h1 className="pprsTitle">Privacy Preserving Recommender System</h1>
-      {loading ? (<SyncLoader color="#36d7b7" />) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
+      {loading ? (<SyncLoader color="#C5C392" />) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
     </>
   )
 }
