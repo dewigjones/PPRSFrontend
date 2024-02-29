@@ -96,8 +96,8 @@ transform: scale(1.1);
   border-radius: 0% 0% 2ex 2ex;
   box-shadow: 20px 20px 1px rgba(20, 20, 20, 0.2) inset;
   top: 0;
-  width: 99vw;
-  height: 64px;
+  width: 99.1vw;
+  height: 80px;
   padding: 2ex 0ex 0ex 0ex; 
   overflow-y: visible;
 }
