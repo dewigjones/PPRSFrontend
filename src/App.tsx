@@ -3,6 +3,7 @@ import SEAL from 'node-seal'
 import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
+import TopBar from "./TopBar.tsx";
 import seckey from '../data/seckey.txt'
 import encryptedList from '../data/filelist.txt'
 import { Decryptor } from "node-seal/implementation/decryptor";
@@ -163,7 +164,7 @@ function App() {
 
   return (
     <>
-      <h1 className="pprsTitle">Privacy Preserving Recommender System</h1>
+      <TopBar/>
       {loading ? (<SyncLoader color="#C5C392" />) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
     </>
   )

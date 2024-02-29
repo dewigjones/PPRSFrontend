@@ -89,3 +89,39 @@ transform: scale(1.1);
   text-align: left;
   padding: 0%;
 }
+
+.topbar {
+  background: rgba(20,20,20,0.8);
+  /* filter: blur(1px); */
+  border-radius: 0% 0% 2ex 2ex;
+  box-shadow: 20px 20px 1px rgba(20, 20, 20, 0.2) inset;
+  top: 0;
+  width: 99vw;
+  height: 64px;
+  padding: 2ex 0ex 0ex 0ex; 
+  overflow-y: visible;
+}
+
+.topbar-logo {
+  height: 64px;
+  width: 64px;
+  position: absolute;
+  left: 0%;
+  padding: auto;
+}
+
+.topbar-title {
+  padding: 0ex 0ex 0ex 2.5ex;
+  text-align: justify;
+  display:flow-root;
+  justify-content: baseline;
+  /* width: 100%; */
+  line-height: 64px;
+  font-size: 300%;
+  font-family: "Lato", sans-serif;
+  font-weight: 600;
+  font-style: normal;
+  text-shadow: 1px 1px 1px black;
+  /* overflow-y: visible; */
+}
+
