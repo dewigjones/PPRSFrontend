@@ -9,7 +9,7 @@ import { Decryptor } from "node-seal/implementation/decryptor";
 import { Evaluator } from "node-seal/implementation/evaluator";
 import { BatchEncoder } from "node-seal/implementation/batch-encoder";
 import { Context } from "node-seal/implementation/context";
-
+import { SyncLoader } from "react-spinners";
 export interface MoviesInterface {
   id?: number;
   title: string;
@@ -164,7 +164,7 @@ function App() {
   return (
     <>
       <h1 className="pprsTitle">Privacy Preserving Recommender System</h1>
-      {loading ? (<h2>Loading</h2>) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
+      {loading ? (<SyncLoader color="#36d7b7" />) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
     </>
   )
 }
