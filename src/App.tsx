@@ -164,8 +164,7 @@ function App() {
 
   return (
     <>
-      <TopBar/>
-      {loading ? (<SyncLoader color="#C5C392" />) : (<> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
+      {loading ? (<SyncLoader color="#C5C392" />) : (<><TopBar id={0} name="Gruff" img_path="Gruff.jpg"/> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /> <MovieBar title={"Movie results"} movies={movies} /></>)}
     </>
   )
 }

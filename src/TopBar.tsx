@@ -1,10 +1,10 @@
-import Avatar from "./Avatar";
-export default function TopBar() {
+import Avatar, { User } from "./Avatar";
+export default function TopBar({id, name, img_path}: User) {
     return(
       <div className="topbar">
         <img src="logo.png" className="topbar-logo"/>
         <div className="topbar-title">PPRS</div>
-        <Avatar id={0} name="Gruff" img_path="Gruff.jpg"/>
+        <Avatar id={id} name={name} img_path={img_path}/>
       </div>  
     );
 }
