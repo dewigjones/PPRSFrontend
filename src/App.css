@@ -106,13 +106,13 @@ transform: scale(1.1);
   height: 64px;
   width: 64px;
   position: absolute;
-  left: 0%;
-  top: 2ex;
+  left: 2ex;
+  top: 2.5ex;
   padding: auto;
 }
 
 .topbar-title {
-  padding: 0ex 0ex 0ex 2.5ex;
+  padding: 0ex 0ex 0ex 3ex;
   text-align: justify;
   display:flow-root;
   justify-content: baseline;
@@ -130,7 +130,7 @@ transform: scale(1.1);
   width:64px;
   height: 64px;
   position: absolute;
-  top: 2ex;
+  top: 2.5ex;
   right: 2ex;
   padding: 0%;
   border-radius: 50%;
