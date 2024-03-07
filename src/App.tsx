@@ -85,7 +85,8 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
   fetch(encryptedList).then(data => data.text()).then(text => {
     let counter = 0;
     const lines = text.split('\n');
-    lines.forEach((filename) =>
+    const userlines = lines.filter((filename) => filename.startsWith("user2"));
+    userlines.forEach((filename) =>
   {fetch("../data/" +filename).then(data => data.arrayBuffer())
               .then(value => { 
                 const ciphertext = seal.CipherText();
@@ -97,7 +98,7 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
                 const rating = decoded[0] / Math.pow(2,30);
                 console.log(filmNum + ", " + rating.toString());
                 decoded? setDecryptedMovies((decryptedMovies)=> decryptedMovies.add([parseInt(filmNum), rating])): console.log("error with decoding");
-                if (counter++ >= lines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading) }
+                if (counter++ >= userlines.length - 1) {processMovies(decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading) }
               });
     })
   })

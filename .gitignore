@@ -27,3 +27,5 @@ dist-ssr
 .env
 
 data/*
+data1/*
+data-backup.gz
