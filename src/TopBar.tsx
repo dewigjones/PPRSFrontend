@@ -1,10 +1,18 @@
 import Avatar, { User } from "./Avatar";
-export default function TopBar({id, name, img_path}: User) {
+
+export interface topbar {
+  user: User,
+  avatarHandler: () => void;
+};
+
+export default function TopBar({user, avatarHandler}: topbar) {
     return(
       <div className="topbar">
         <img src="logo.png" className="topbar-logo"/>
         <div className="topbar-title">PPRS</div>
-        <Avatar id={id} name={name} img_path={img_path}/>
+        <div onClick={avatarHandler}>
+          <Avatar id={user.id} name={user.name} img_path={user.img_path}/>
+        </div>
       </div>  
     );
 }

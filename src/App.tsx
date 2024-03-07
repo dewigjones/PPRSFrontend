@@ -3,7 +3,7 @@ import SEAL from 'node-seal'
 import movieList from '../movieList.txt'
 import './App.css'
 import MovieBar from './MovieBar'
-import TopBar from "./TopBar.tsx";
+import TopBar, { topbar } from "./TopBar.tsx";
 import seckey from '../data/seckey.txt'
 import encryptedList from '../data/filelist.txt'
 import { Decryptor } from "node-seal/implementation/decryptor";
@@ -11,6 +11,8 @@ import { Evaluator } from "node-seal/implementation/evaluator";
 import { BatchEncoder } from "node-seal/implementation/batch-encoder";
 import { Context } from "node-seal/implementation/context";
 import { SyncLoader } from "react-spinners";
+import { User } from "./Avatar.tsx";
+
 export interface MoviesInterface {
   id?: number;
   title: string;
@@ -24,6 +26,20 @@ export interface MovieListInterface {
   title: string;
   movies: MoviesInterface[];
 }
+
+const user1 :User = {
+  id: 1,
+  name: "Gruff",
+  img_path: "Gruff.jpg",
+}
+
+const user2 :User = {
+  id: 2,
+  name: "Dewi",
+  img_path: "Dewi.jpg",
+}
+
+const extractName = (user: User) => user.name;
 
 const seal = await SEAL();
 const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
@@ -85,7 +101,7 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
   fetch(encryptedList).then(data => data.text()).then(text => {
     let counter = 0;
     const lines = text.split('\n');
-    const userlines = lines.filter((filename) => filename.startsWith("user2"));
+    const userlines = lines.filter((filename) => filename.startsWith("user1"));
     userlines.forEach((filename) =>
   {fetch("../data/" +filename).then(data => data.arrayBuffer())
               .then(value => { 
@@ -170,6 +186,7 @@ function App() {
   const [moviesFetched, setMoviesFetched] = useState<Set<number>>(new Set<number>);
   const [idMap, setIdMap] = useState<Map<number, string>>(new Map<number, string>());
   const [idMapLoaded, setIdMapLoaded] = useState<boolean>(false);
+  const [curUser, setCurUser] = useState<User>(user1);
 
   const [context, setContext] = useState<Context>();
   const [decryptor, setDecryptor] = useState<Decryptor>();
@@ -177,6 +194,18 @@ function App() {
   const [encoder, setEncoder] = useState<BatchEncoder>();
   const [decryptedMovies, setDecryptedMovies] = useState<Set<[number, number]>>(new Set<[number, number]>());
   const [moviesDecrypted, setMoviesDecrypted] = useState<boolean>(false);
+
+  const toggleUser = () => {
+    (curUser.id === user1.id)? setCurUser(user2) : setCurUser(user1);
+    setDecryptedMovies(new Set());
+    setTopMovies([]);
+    setGenre1Movies([]);
+    setGenre2Movies([]);
+    setSealInitialised(false);
+    setMoviesFetched(new Set());
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading);
+    setSealInitialised(true);
+  };
 
   if (!sealInitialised) {
     initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading);
@@ -189,12 +218,12 @@ function App() {
     setIdMapLoaded(true);
   }));
 
+
+  const topbar: topbar = {user: curUser, avatarHandler:toggleUser}
   
-
-
   return (
     <>
-      {loading ? (<SyncLoader color="#C5C392" />) : (<><TopBar id={1} name="Gruff" img_path="Gruff.jpg"/> <MovieBar title={"Top Picks for Gruff"} movies={topMovies} /> <MovieBar title={"Top Comedy Films"} movies={genre1Movies} /> <MovieBar title={"Top Drama Films"} movies={genre2Movies} /></>)}
+      {loading ? (<SyncLoader color="#C5C392" />) : (<><TopBar {...topbar} /> <MovieBar title={"Top Picks for " + extractName(curUser)} movies={topMovies} /> <MovieBar title={"Top Comedy Films"} movies={genre1Movies} /> <MovieBar title={"Top Drama Films"} movies={genre2Movies} /></>)}
     </>
   )
 }
