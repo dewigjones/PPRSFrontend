@@ -40,9 +40,10 @@ const user2 :User = {
 }
 
 const extractName = (user: User) => user.name;
+const extractid = (user: User) => user.id;
 
 const seal = await SEAL();
-const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
+const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies: Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading, curUser) => {
   const schemeType = seal.SchemeType.bgv;
   const securityLevel = seal.SecurityLevel.tc128;
   const polyModulusDegree = 16384;
@@ -92,16 +93,18 @@ const initSeal = (setContext, setDecryptor, setEvaluator, setEncoder, setDecrypt
                   seckey ? secretKey.loadArray(context, seckey): console.log("Error loading secret key") ;
                   const decryptor = seal.Decryptor(context, secretKey);
                   setDecryptor(decryptor);
-                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading)
+                  onSecKeyLoad(context, decryptor, encoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading, curUser)
                 });
 
 }
 
-const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<SetStateAction<Set<[number, number]>>>, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading)  =>{
+const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<SetStateAction<Set<[number, number]>>>, setMoviesDecrypted, decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies, setGenre1Movies, setGenre2Movies, setLoading, curUser)  =>{
   fetch(encryptedList).then(data => data.text()).then(text => {
-    let counter = 0;
+    var counter = 0;
     const lines = text.split('\n');
-    const userlines = lines.filter((filename) => filename.startsWith("user1"));
+    const startString: string = "user" + extractid(curUser).toString();
+    console.log(startString);
+    const userlines = lines.filter((filename) => filename.startsWith(startString));
     userlines.forEach((filename) =>
   {fetch("../data/" +filename).then(data => data.arrayBuffer())
               .then(value => { 
@@ -121,7 +124,9 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
   }
 
   const processMovies = (decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies:Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
+    console.log("processing movies"); 
     const decryptedMoviesArray = Array.from(decryptedMovies);
+    console.log(decryptedMoviesArray);
     decryptedMoviesArray.sort(([, b], [, y]) => y - b);
     const topMovies = decryptedMoviesArray.slice(0, numOfFilmsToDisplay);
     const middleMovies = decryptedMoviesArray.slice(numOfFilmsToDisplay + 1, 3 * numOfFilmsToDisplay);
@@ -197,18 +202,19 @@ function App() {
 
   const toggleUser = () => {
     (curUser.id === user1.id)? setCurUser(user2) : setCurUser(user1);
+    // setLoading(true);
     setDecryptedMovies(new Set());
     setTopMovies([]);
     setGenre1Movies([]);
     setGenre2Movies([]);
     setSealInitialised(false);
     setMoviesFetched(new Set());
-    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading);
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading, curUser);
     setSealInitialised(true);
   };
 
   if (!sealInitialised) {
-    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading);
+    initSeal(setContext, setDecryptor, setEvaluator, setEncoder, setDecryptedMovies, setMoviesDecrypted, decryptedMovies, idMap, apikey, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setTopMovies, setGenre1Movies, setGenre2Movies, setLoading, curUser);
     setSealInitialised(true);
   }
 
