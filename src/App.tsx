@@ -126,13 +126,13 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
   const processMovies = (decryptedMovies: Set<[number, number]>, idMap: Map<number, string>, apikey: string, numOfFilmsToDisplay, moviesFetched, setMoviesFetched, setMovies:Dispatch<SetStateAction<MoviesInterface[]>>, setGenre1Movies, setGenre2Movies, setLoading) => {
     console.log("processing movies"); 
     const decryptedMoviesArray = Array.from(decryptedMovies);
-    console.log(decryptedMoviesArray);
     decryptedMoviesArray.sort(([, b], [, y]) => y - b);
     const topMovies = decryptedMoviesArray.slice(0, numOfFilmsToDisplay);
     const middleMovies = decryptedMoviesArray.slice(numOfFilmsToDisplay + 1, 3 * numOfFilmsToDisplay);
+    const moviesFetchedSet = new Set<number>();
     topMovies.forEach(([index,]) => {
-      if(!moviesFetched.has(index)) {
-      setMoviesFetched((moviesFetched) => moviesFetched.add(index));
+      if(!moviesFetchedSet.has(index)) {
+      moviesFetchedSet.add(index);
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
       const options = {
@@ -146,7 +146,7 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
-          let firstMovie: MoviesInterface = data.results[0];
+          const firstMovie: MoviesInterface = data.results[0];
           setMovies((movies) => [...movies, firstMovie]);
           if(firstMovie.genre_ids.includes(35)) setGenre1Movies((genre1Movies) =>[...genre1Movies, firstMovie]);
           if(firstMovie.genre_ids.includes(18)) setGenre2Movies((genre2Movies) =>[...genre2Movies, firstMovie]);
@@ -154,8 +154,8 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
         })
     }})
     middleMovies.forEach(([index, ]) => {
-    if(!moviesFetched.has(index)) {
-      setMoviesFetched((moviesFetched) => moviesFetched.add(index));
+    if(!moviesFetchedSet.has(index)) {
+      moviesFetchedSet.add(index);
       const movieTitle = idMap.get(index);
       const MovieLookUpApi = `https://api.themoviedb.org/3/search/movie?query=${movieTitle}&include_adult=false&language=en-US&page=1`;
       const options = {
@@ -169,7 +169,7 @@ const onSecKeyLoad = (context, decryptor, encoder, setDecryptedMovies:Dispatch<S
         .then((res) => res.json())
         .then((data) => {
           console.log(data);
-          let firstMovie: MoviesInterface = data.results[0];
+          const firstMovie: MoviesInterface = data.results[0];
           if(firstMovie.genre_ids.includes(35)) setGenre1Movies((genre1Movies) =>[...genre1Movies, firstMovie]);
           if(firstMovie.genre_ids.includes(18)) setGenre2Movies((genre2Movies) =>[...genre2Movies, firstMovie]);
           setLoading(false);
@@ -202,7 +202,7 @@ function App() {
 
   const toggleUser = () => {
     (curUser.id === user1.id)? setCurUser(user2) : setCurUser(user1);
-    // setLoading(true);
+    setLoading(true);
     setDecryptedMovies(new Set());
     setTopMovies([]);
     setGenre1Movies([]);
