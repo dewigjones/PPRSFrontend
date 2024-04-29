@@ -1,30 +1,5 @@
-# React + TypeScript + Vite
-
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
-
-Currently, two official plugins are available:
-
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react/README.md) uses [Babel](https://babeljs.io/) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type aware lint rules:
-
-- Configure the top-level `parserOptions` property like this:
-
-```js
-export default {
-  // other rules...
-  parserOptions: {
-    ecmaVersion: 'latest',
-    sourceType: 'module',
-    project: ['./tsconfig.json', './tsconfig.node.json'],
-    tsconfigRootDir: __dirname,
-  },
-}
-```
-
-- Replace `plugin:@typescript-eslint/recommended` to `plugin:@typescript-eslint/recommended-type-checked` or `plugin:@typescript-eslint/strict-type-checked`
-- Optionally add `plugin:@typescript-eslint/stylistic-type-checked`
-- Install [eslint-plugin-react](https://github.com/jsx-eslint/eslint-plugin-react) and add `plugin:react/recommended` & `plugin:react/jsx-runtime` to the `extends` list
+# Privacy Preserving Recommender System Frontend
+This is the Frontend for the Privacy Preserving Recommender System (PPRS) for my Third Year Project. To run, you need a few things:
+1. Register for an API key from [The Movie Database (TMDB)](https://www.themoviedb.org/settings/api/request). Create a file called `.env` at the top level and put your key next to `VITE_REACT_APP_TMDB_API_KEY=` and the token next to `VITE_REACT_APP_TMDB_API_TOKEN=`
+2. Generate data by running the [PPRS model](https://github.com/dewigjones/PrivacyPreservingRecommenderSystem), copying the resulting `data` folder and making a list of all the files with `ls > filelist.txt`, making sure to remove the `pubkey`, `seckey` and final empty line
+3. Run `npm i` then `npm run dev`, open the localhost address that is generated in your browser
